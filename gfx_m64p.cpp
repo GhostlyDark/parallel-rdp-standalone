@@ -23,27 +23,6 @@
 
 #define M64P_PLUGIN_PROTOTYPES 1
 
-#define KEY_FULLSCREEN "Fullscreen"
-#define KEY_SCREEN_WIDTH "ScreenWidth"
-#define KEY_SCREEN_HEIGHT "ScreenHeight"
-#define KEY_UPSCALING "Upscaling"
-#define KEY_WIDESCREEN "WidescreenStretch"
-#define KEY_SSDITHER "SuperscaledDither"
-#define KEY_SSREADBACKS "SuperscaledReads"
-#define KEY_OVERSCANCROP "CropOverscan"
-#define KEY_VERTICAL_STRETCH "VerticalStretch"
-#define KEY_DIVOT "Divot"
-#define KEY_GAMMADITHER "GammaDither"
-#define KEY_AA "VIAA"
-#define KEY_VIBILERP "VIBilerp"
-#define KEY_VIDITHER "VIDither"
-#define KEY_DOWNSCALE "DownScale"
-#define KEY_NATIVETEXTRECT "NativeTextRECT"
-#define KEY_NATIVETEXTLOD "NativeTextLOD"
-#define KEY_DEINTERLACE "DeinterlaceMode"
-#define KEY_SYNCHRONOUS "SynchronousRDP"
-#define KEY_VSYNC "VSync"
-
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -52,6 +31,7 @@
 #include "gfx_m64p.h"
 #include "glguts.h"
 #include "parallel_imp.h"
+#include "UserInterface/MainDialog.hpp"
 
 #include "m64p_types.h"
 #include "m64p_config.h"
@@ -60,13 +40,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-static ptr_ConfigOpenSection ConfigOpenSection = NULL;
-static ptr_ConfigSaveSection ConfigSaveSection = NULL;
-static ptr_ConfigSetDefaultInt ConfigSetDefaultInt = NULL;
-static ptr_ConfigSetDefaultBool ConfigSetDefaultBool = NULL;
-static ptr_ConfigGetParamInt ConfigGetParamInt = NULL;
-static ptr_ConfigGetParamBool ConfigGetParamBool = NULL;
-static ptr_ConfigSetParameter ConfigSetParameter = NULL;
+ptr_ConfigOpenSection ConfigOpenSection = NULL;
+ptr_ConfigSaveSection ConfigSaveSection = NULL;
+ptr_ConfigSetDefaultInt ConfigSetDefaultInt = NULL;
+ptr_ConfigSetDefaultBool ConfigSetDefaultBool = NULL;
+ptr_ConfigGetParamInt ConfigGetParamInt = NULL;
+ptr_ConfigGetParamBool ConfigGetParamBool = NULL;
+ptr_ConfigSetParameter ConfigSetParameter = NULL;
 
 static bool vk_initialized;
 static bool warn_hle;
@@ -78,8 +58,7 @@ m64p_dynlib_handle CoreLibHandle;
 GFX_INFO gfx;
 void (*render_callback)(int);
 
-static m64p_handle configVideoGeneral = NULL;
-static m64p_handle configVideoParallel = NULL;
+m64p_handle configVideoParallel = NULL;
 
 #define PLUGIN_VERSION 0x000001
 #define VIDEO_PLUGIN_API_VERSION 0x020200
@@ -222,6 +201,22 @@ EXPORT m64p_error CALL PluginGetVersion(m64p_plugin_type *PluginType, int *Plugi
     return M64ERR_SUCCESS;
 }
 
+extern "C"
+{
+    EXPORT m64p_error CALL PluginConfig(void)
+    {
+        if (!plugin_initialized)
+        {
+            return M64ERR_NOT_INIT;
+        }
+
+        UserInterface::MainDialog dialog(nullptr);
+        dialog.exec();
+
+        return M64ERR_SUCCESS;
+    }
+}
+
 EXPORT int CALL InitiateGFX(GFX_INFO Gfx_Info)
 {
     gfx = Gfx_Info;
@@ -330,7 +325,7 @@ EXPORT void CALL ReadScreen2(void *dest, int *width, int *height, int front)
 
     if (dest)
     {
-        fb.pixels = dest;
+        fb.pixels = (video_pixel*)dest;
         screen_read(&fb, false);
     }
 }

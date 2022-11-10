@@ -27,6 +27,12 @@ if(WIN32)
     add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
 endif()
 
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+find_package(Qt5 COMPONENTS Gui Widgets Core REQUIRED)
+
 FILE(GLOB RDPSources parallel-rdp/*.cpp)
 
 add_library(${NAME_PLUGIN_M64P} SHARED
@@ -59,9 +65,12 @@ add_library(${NAME_PLUGIN_M64P} SHARED
     util/timeline_trace_file.cpp
     util/thread_name.cpp
     volk/volk.c
-    gfx_m64p.c
+    gfx_m64p.cpp
     glguts.c
-    parallel_imp.cpp)
+    parallel_imp.cpp
+    UserInterface/MainDialog.cpp
+    UserInterface/MainDialog.ui
+)
 
 target_include_directories(${NAME_PLUGIN_M64P} PUBLIC
     parallel-rdp
@@ -73,5 +82,7 @@ target_include_directories(${NAME_PLUGIN_M64P} PUBLIC
 if(WIN32)
     target_link_libraries(${NAME_PLUGIN_M64P} ${OPENGL_LIBRARIES} -lwinmm)
 endif()
+
+target_link_libraries(${NAME_PLUGIN_M64P} Qt5::Gui Qt5::Widgets)
 
 set_target_properties(${NAME_PLUGIN_M64P} PROPERTIES PREFIX "")
