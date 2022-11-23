@@ -60,6 +60,12 @@ MainDialog::MainDialog(QWidget* parent) : QDialog(parent, Qt::WindowSystemMenuHi
     // set downscaling combobox
     this->downscalerComboBox->setCurrentIndex(ConfigGetParamInt(configVideoParallel, KEY_DOWNSCALE));
 
+    // set cropOverscan combobox
+    this->cropOverscanSpinBox->setValue(ConfigGetParamInt(configVideoParallel, KEY_OVERSCANCROP));
+
+    // set verticalStretch combobox
+    this->verticalStretchSpinBox->setValue(ConfigGetParamInt(configVideoParallel, KEY_VERTICAL_STRETCH));
+
     this->superSampledDitherCheckBox->setChecked(ConfigGetParamBool(configVideoParallel, KEY_SSDITHER));
     this->viAaCheckBox->setChecked(ConfigGetParamBool(configVideoParallel, KEY_AA));
     this->viDivotFilterCheckBox->setChecked(ConfigGetParamBool(configVideoParallel, KEY_DIVOT));
@@ -116,6 +122,14 @@ void MainDialog::on_buttonBox_clicked(QAbstractButton* button)
     // downscaler
     int downscalingValue = this->downscalerComboBox->currentIndex();
     ConfigSetParameter(configVideoParallel, KEY_DOWNSCALE, M64TYPE_INT, &downscalingValue);
+
+    // cropOverscan
+    int cropOverscanValue = this->cropOverscanSpinBox->value();
+    ConfigSetParameter(configVideoParallel, KEY_OVERSCANCROP, M64TYPE_INT, &cropOverscanValue);
+
+    // verticalStretch
+    int verticalStretchValue = this->verticalStretchSpinBox->value();
+    ConfigSetParameter(configVideoParallel, KEY_VERTICAL_STRETCH, M64TYPE_INT, &verticalStretchValue);
 
     // checkboxes
     int superSampledDitherValue = this->superSampledDitherCheckBox->isChecked() ? 1 : 0; //(ConfigGetParamBool(configVideoParallel, KEY_SSDITHER));
