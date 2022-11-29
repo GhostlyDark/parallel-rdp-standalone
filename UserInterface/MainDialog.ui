@@ -210,22 +210,18 @@
               </widget>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_7">
-               <item>
-                <widget class="QCheckBox" name="viAaCheckBox">
-                 <property name="text">
-                  <string>VI AA</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="viDivotFilterCheckBox">
-                 <property name="text">
-                  <string>VI divot filter</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              <widget class="QCheckBox" name="viAaCheckBox">
+               <property name="text">
+                <string>VI AA</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="viDivotFilterCheckBox">
+               <property name="text">
+                <string>VI divot filter</string>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QCheckBox" name="viDeDitheringCheckBox">
@@ -238,13 +234,6 @@
               <widget class="QCheckBox" name="nativeTextureLodCheckBox">
                <property name="text">
                 <string>Native texture LOD</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="fullscreenCheckBox">
-               <property name="text">
-                <string>Fullscreen</string>
                </property>
               </widget>
              </item>

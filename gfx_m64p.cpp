@@ -126,7 +126,6 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle _CoreLibHandle, void *Co
     ConfigSetParameter = (ptr_ConfigSetParameter)DLSYM(CoreLibHandle, "ConfigSetParameter");
 
     ConfigOpenSection("Video-Parallel", &configVideoParallel);
-    ConfigSetDefaultBool(configVideoParallel, KEY_FULLSCREEN, 0, "Use fullscreen mode if True, or windowed mode if False");
     ConfigSetDefaultInt(configVideoParallel, KEY_UPSCALING, 1, "Amount of rescaling: 1=None, 2=2x, 4=4x, 8=8x");
     ConfigSetDefaultBool(configVideoParallel, KEY_VSYNC, 0, "Enable VSync");
     ConfigSetDefaultInt(configVideoParallel, KEY_SCREEN_WIDTH, 640, "Screen width");
@@ -239,7 +238,7 @@ EXPORT void CALL ProcessRDPList(void)
 
 EXPORT int CALL RomOpen(void)
 {
-    window_fullscreen = ConfigGetParamBool(configVideoParallel, KEY_FULLSCREEN);
+    window_fullscreen = false;
     window_width = ConfigGetParamInt(configVideoParallel, KEY_SCREEN_WIDTH);
     window_height = ConfigGetParamInt(configVideoParallel, KEY_SCREEN_HEIGHT);
     window_widescreen = ConfigGetParamBool(configVideoParallel, KEY_WIDESCREEN);
