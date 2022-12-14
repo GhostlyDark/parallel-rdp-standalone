@@ -14,7 +14,7 @@
 
 using namespace UserInterface;
 
-MainDialog::MainDialog(QWidget* parent) : QDialog(parent, Qt::WindowSystemMenuHint | Qt::WindowTitleHint)
+MainDialog::MainDialog(QWidget* parent) : QDialog(parent)
 {
     this->setupUi(this);
 
