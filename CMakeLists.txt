@@ -7,6 +7,14 @@ set(NAME_PLUGIN_M64P "mupen64plus-video-parallel")
 include_directories(../mupen64plus-core/src/api)
 add_definitions(-DM64P_PLUGIN_API -DGRANITE_VULKAN_MT)
 
+option(USE_QT5 "Enables Qt5 instead of Qt6 (will be removed in the future)" OFF)
+
+if (USE_QT5)
+    set(QT_VERSION Qt5)
+else(USE_QT5)
+    set(QT_VERSION Qt6)
+endif(USE_QT5)
+
 # check for INTERPROCEDURAL_OPTIMIZATION support
 if((${CMAKE_VERSION} VERSION_EQUAL 3.9) OR (${CMAKE_VERSION} VERSION_GREATER 3.9))
     cmake_policy(SET CMP0069 NEW)
@@ -31,7 +39,7 @@ endif()
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-find_package(Qt5 COMPONENTS Gui Widgets Core REQUIRED)
+find_package(${QT_VERSION} COMPONENTS Gui Widgets Core REQUIRED)
 
 FILE(GLOB RDPSources parallel-rdp/*.cpp)
 
@@ -83,6 +91,6 @@ if(WIN32)
     target_link_libraries(${NAME_PLUGIN_M64P} ${OPENGL_LIBRARIES} -lwinmm)
 endif()
 
-target_link_libraries(${NAME_PLUGIN_M64P} Qt5::Gui Qt5::Widgets)
+target_link_libraries(${NAME_PLUGIN_M64P} ${QT_VERSION}::Gui ${QT_VERSION}::Widgets)
 
 set_target_properties(${NAME_PLUGIN_M64P} PROPERTIES PREFIX "")
