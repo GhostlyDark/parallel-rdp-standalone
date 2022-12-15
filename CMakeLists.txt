@@ -66,6 +66,7 @@ add_library(${NAME_PLUGIN_M64P} SHARED
     vulkan/semaphore_manager.cpp
     vulkan/shader.cpp
     vulkan/texture_format.cpp
+    util/arena_allocator.cpp
     util/logging.cpp
     util/thread_id.cpp
     util/aligned_alloc.cpp
