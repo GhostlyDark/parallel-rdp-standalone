@@ -3,6 +3,7 @@
 #include "parallel_imp.h"
 #include "m64p_config.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -62,17 +63,14 @@ int32_t window_vsync;
 #define SHADER_HEADER "#version 330 core\n"
 #define TEX_FORMAT GL_RGBA
 #define TEX_TYPE GL_UNSIGNED_BYTE
-#define TEX_NUM 3
 
 static GLuint program;
 static GLuint vao;
 static GLuint buffer;
-static GLuint texture[TEX_NUM];
-static uint8_t *buffer_data;
-static uint32_t buffer_size = (640*8) * (480*8) * sizeof(uint32_t);
+static GLuint texture;
 
-int32_t tex_width[TEX_NUM];
-int32_t tex_height[TEX_NUM];
+int32_t tex_width;
+int32_t tex_height;
 int display_width;
 int display_height;
 
@@ -171,30 +169,27 @@ static GLuint gl_shader_link(GLuint vert, GLuint frag)
 
 void screen_write(struct frame_buffer *fb)
 {
-    bool buffer_size_changed = tex_width[rotate_buffer] != fb->width || tex_height[rotate_buffer] != fb->height;
-    char* offset = NULL;
-    offset += rotate_buffer * buffer_size;
+    bool buffer_size_changed = tex_width != fb->width || tex_height != fb->height;
 
-    glBindTexture(GL_TEXTURE_2D, texture[rotate_buffer]);
+    glBindTexture(GL_TEXTURE_2D, texture);
     // check if the framebuffer size has changed
     if (buffer_size_changed)
     {
-        tex_width[rotate_buffer] = fb->width;
-        tex_height[rotate_buffer] = fb->height;
+        tex_width  = fb->width;
+        tex_height = fb->height;
+
         // set pitch for all unpacking operations
         glPixelStorei(GL_UNPACK_ROW_LENGTH, fb->pitch);
         // reallocate texture buffer on GPU
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_width[rotate_buffer],
-                     tex_height[rotate_buffer], 0, TEX_FORMAT, TEX_TYPE, offset);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_width,
+                     tex_height, 0, TEX_FORMAT, TEX_TYPE, fb->pixels);
     }
     else
     {
         // copy local buffer to GPU texture buffer
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_width[rotate_buffer], tex_height[rotate_buffer],
-                        TEX_FORMAT, TEX_TYPE, offset);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tex_width, tex_height,
+                        TEX_FORMAT, TEX_TYPE, fb->pixels);
     }
-
-    rotate_buffer = (rotate_buffer + 1) % TEX_NUM;
 }
 
 void screen_read(struct frame_buffer *fb, bool alpha)
@@ -250,23 +245,17 @@ void gl_screen_clear(void)
 void gl_screen_close(void)
 {
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-    glDeleteTextures(TEX_NUM, &texture[0]);
+    glDeleteTextures(1, &texture);
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &buffer);
     glDeleteProgram(program);
 }
 
-uint8_t* screen_get_texture_data()
-{
-    return buffer_data + (rotate_buffer * buffer_size);
-}
-
 void screen_init()
 {
-    memset(tex_width, 0, sizeof(int32_t) * TEX_NUM);
-    memset(tex_height, 0, sizeof(int32_t) * TEX_NUM);
+    tex_width = tex_height = 0;
     toggle_fs = false;
-    rotate_buffer = 0;
+
     /* Get the core Video Extension function pointers from the library handle */
     CoreVideo_Init = (ptr_VidExt_Init)DLSYM(CoreLibHandle, "VidExt_Init");
     CoreVideo_Quit = (ptr_VidExt_Quit)DLSYM(CoreLibHandle, "VidExt_Quit");
@@ -350,18 +339,10 @@ void screen_init()
     glBindVertexArray(vao);
 
     // prepare texture
-    glGenTextures(TEX_NUM, &texture[0]);
-    for (int i = 0; i < TEX_NUM; ++i)
-    {
-        glBindTexture(GL_TEXTURE_2D, texture[i]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    }
-
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, buffer);
-    glBufferStorage(GL_PIXEL_UNPACK_BUFFER, buffer_size * TEX_NUM, 0, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-    buffer_data = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, buffer_size * TEX_NUM, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // check if there was an error when using any of the commands above
     gl_check_errors();
