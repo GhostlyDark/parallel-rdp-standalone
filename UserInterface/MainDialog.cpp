@@ -19,7 +19,7 @@ MainDialog::MainDialog(QWidget* parent) : QDialog(parent)
     this->setupUi(this);
 
     // set screen size combobox
-    int width = ConfigGetParamInt(configVideoParallel, KEY_SCREEN_WIDTH);
+    int width  = ConfigGetParamInt(configVideoParallel, KEY_SCREEN_WIDTH);
     int height = ConfigGetParamInt(configVideoParallel, KEY_SCREEN_HEIGHT);
 
     QString resolutionString = QString::number(width) + " x " + QString::number(height);

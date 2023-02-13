@@ -317,10 +317,14 @@ EXPORT int CALL RomOpen(void)
         skip_swap_clear = false;
 
     plugin_init();
-    if (vk_init()) {
+
+    if (vk_init())
+    {
         vk_initialized = true;
         return 1;
-    } else {
+    }
+    else
+    {
         vk_initialized = false;
         DebugMessage(M64MSG_ERROR, "Could not start GFX plugin");
         return 0;
@@ -329,12 +333,10 @@ EXPORT int CALL RomOpen(void)
 
 EXPORT void CALL RomClosed(void)
 {
-    ConfigSetParameter(configVideoParallel, KEY_SCREEN_WIDTH, M64TYPE_INT, &window_width);
-    ConfigSetParameter(configVideoParallel, KEY_SCREEN_HEIGHT, M64TYPE_INT, &window_height);
-    ConfigSaveSection("Video-Parallel");
-
     if (vk_initialized)
+    {
         vk_destroy();
+    }
 }
 
 EXPORT void CALL ShowCFB(void)
