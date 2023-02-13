@@ -29,7 +29,7 @@
 
 namespace Util
 {
-static thread_local LoggingInterface *logging_iface;
+static LoggingInterface *logging_iface;
 
 bool interface_log(const char *tag, const char *fmt, ...)
 {

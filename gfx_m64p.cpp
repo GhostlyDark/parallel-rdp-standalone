@@ -190,6 +190,9 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle _CoreLibHandle, void *Co
     ConfigSetDefaultBool(configVideoParallel, KEY_NATIVETEXTRECT, 1, "Native resolution TEX_RECT. TEX_RECT primitives should generally be rendered at native resolution to avoid seams");
     ConfigSaveSection("Video-Parallel");
 
+    // set logging interface
+    Util::set_thread_logging_interface(&l_LoggingInterface);
+
     plugin_initialized = true;
     vk_initialized = false;
     return M64ERR_SUCCESS;
@@ -261,7 +264,6 @@ extern "C"
 
 EXPORT int CALL InitiateGFX(GFX_INFO Gfx_Info)
 {
-    Util::set_thread_logging_interface(&l_LoggingInterface);
     gfx = Gfx_Info;
 
     return 1;
@@ -282,8 +284,6 @@ EXPORT void CALL ProcessRDPList(void)
 
 EXPORT int CALL RomOpen(void)
 {
-    Util::set_thread_logging_interface(&l_LoggingInterface);
-
     window_fullscreen = false;
     window_width = ConfigGetParamInt(configVideoParallel, KEY_SCREEN_WIDTH);
     window_height = ConfigGetParamInt(configVideoParallel, KEY_SCREEN_HEIGHT);
