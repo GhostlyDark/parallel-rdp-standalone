@@ -29,6 +29,7 @@ extern ptr_ConfigGetParamBool ConfigGetParamBool;
 extern ptr_ConfigSetParameter ConfigSetParameter;
 
 
+#define KEY_FULLSCREEN "Fullscreen"
 #define KEY_SCREEN_WIDTH "ScreenWidth"
 #define KEY_SCREEN_HEIGHT "ScreenHeight"
 #define KEY_UPSCALING "Upscaling"
