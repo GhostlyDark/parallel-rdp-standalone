@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.9)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 99)
 project(parallel-rdp LANGUAGES CXX C)
@@ -10,15 +10,13 @@ add_definitions(-DM64P_PLUGIN_API -DGRANITE_VULKAN_MT)
 option(CONFIG_GUI "Enables Qt configuration GUI)" OFF)
 
 # check for INTERPROCEDURAL_OPTIMIZATION support
-if((${CMAKE_VERSION} VERSION_EQUAL 3.9) OR (${CMAKE_VERSION} VERSION_GREATER 3.9))
-    cmake_policy(SET CMP0069 NEW)
+cmake_policy(SET CMP0069 NEW)
 
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT ENABLE_IPO)
-    if(ENABLE_IPO)
-        message("Interprocedural optimizations enabled")
-    endif(ENABLE_IPO)
-endif()
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ENABLE_IPO)
+if(ENABLE_IPO)
+    message("Interprocedural optimizations enabled")
+endif(ENABLE_IPO)
 
 if(ENABLE_IPO AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
