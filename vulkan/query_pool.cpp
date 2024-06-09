@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2022 Hans-Kristian Arntzen
+/* Copyright (c) 2017-2023 Hans-Kristian Arntzen
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -24,8 +24,6 @@
 #include "device.hpp"
 #include <utility>
 
-using namespace std;
-
 namespace Vulkan
 {
 static const char *storage_to_str(VkPerformanceCounterStorageKHR storage)
@@ -35,7 +33,7 @@ static const char *storage_to_str(VkPerformanceCounterStorageKHR storage)
 	case VK_PERFORMANCE_COUNTER_STORAGE_FLOAT32_KHR:
 		return "float32";
 	case VK_PERFORMANCE_COUNTER_STORAGE_FLOAT64_KHR:
-		return "float32";
+		return "float64";
 	case VK_PERFORMANCE_COUNTER_STORAGE_INT32_KHR:
 		return "int32";
 	case VK_PERFORMANCE_COUNTER_STORAGE_INT64_KHR:
@@ -95,6 +93,19 @@ static const char *unit_to_str(VkPerformanceCounterUnitKHR unit)
 	}
 }
 
+void PerformanceQueryPool::log_available_counters(const VkPerformanceCounterKHR *counters,
+                                                  const VkPerformanceCounterDescriptionKHR *descs,
+                                                  uint32_t count)
+{
+	for (uint32_t i = 0; i < count; i++)
+	{
+		LOGI("  %s: %s\n", descs[i].name, descs[i].description);
+		LOGI("    Storage: %s\n", storage_to_str(counters[i].storage));
+		LOGI("    Scope: %s\n", scope_to_str(counters[i].scope));
+		LOGI("    Unit: %s\n", unit_to_str(counters[i].unit));
+	}
+}
+
 void PerformanceQueryPool::init_device(Device *device_, uint32_t queue_family_index_)
 {
 	device = device_;
@@ -114,8 +125,8 @@ void PerformanceQueryPool::init_device(Device *device_, uint32_t queue_family_in
 		return;
 	}
 
-	counters.resize(num_counters);
-	counter_descriptions.resize(num_counters);
+	counters.resize(num_counters, { VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_KHR });
+	counter_descriptions.resize(num_counters, { VK_STRUCTURE_TYPE_PERFORMANCE_COUNTER_DESCRIPTION_KHR });
 
 	if (vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR(
 			device->get_physical_device(),
@@ -125,15 +136,6 @@ void PerformanceQueryPool::init_device(Device *device_, uint32_t queue_family_in
 	{
 		LOGE("Failed to enumerate performance counters.\n");
 		return;
-	}
-
-	LOGI("Available performance counters for queue family: %u\n", queue_family_index);
-	for (uint32_t i = 0; i < num_counters; i++)
-	{
-		LOGI("  %s: %s\n", counter_descriptions[i].name, counter_descriptions[i].description);
-		LOGI("    Storage: %s\n", storage_to_str(counters[i].storage));
-		LOGI("    Scope: %s\n", scope_to_str(counters[i].scope));
-		LOGI("    Unit: %s\n", unit_to_str(counters[i].unit));
 	}
 }
 
@@ -149,7 +151,7 @@ void PerformanceQueryPool::begin_command_buffer(VkCommandBuffer cmd)
 		return;
 
 	auto &table = device->get_device_table();
-	table.vkResetQueryPoolEXT(device->get_device(), pool, 0, 0);
+	table.vkResetQueryPoolEXT(device->get_device(), pool, 0, 1);
 	table.vkCmdBeginQuery(cmd, pool, 0, 0);
 
 	VkMemoryBarrier barrier = { VK_STRUCTURE_TYPE_MEMORY_BARRIER };
@@ -176,13 +178,19 @@ void PerformanceQueryPool::end_command_buffer(VkCommandBuffer cmd)
 
 void PerformanceQueryPool::report()
 {
+	if (pool == VK_NULL_HANDLE)
+	{
+		LOGE("No query pool is set up.\n");
+		return;
+	}
+
 	auto &table = device->get_device_table();
 	if (table.vkGetQueryPoolResults(device->get_device(), pool,
 	                                0, 1,
 	                                results.size() * sizeof(VkPerformanceCounterResultKHR),
 	                                results.data(),
 	                                sizeof(VkPerformanceCounterResultKHR),
-	                                0) != VK_SUCCESS)
+	                                VK_QUERY_RESULT_WAIT_BIT) != VK_SUCCESS)
 	{
 		LOGE("Getting performance counters did not succeed.\n");
 	}
@@ -245,7 +253,7 @@ bool PerformanceQueryPool::init_counters(const std::vector<std::string> &counter
 		return false;
 	}
 
-	if (!device->get_device_features().host_query_reset_features.hostQueryReset)
+	if (!device->get_device_features().vk12_features.hostQueryReset)
 	{
 		LOGE("Device does not support host query reset.\n");
 		return false;
@@ -313,7 +321,8 @@ QueryPool::QueryPool(Device *device_)
 	: device(device_)
 	, table(device_->get_device_table())
 {
-	supports_timestamp = device->get_gpu_properties().limits.timestampComputeAndGraphics;
+	supports_timestamp = device->get_gpu_properties().limits.timestampComputeAndGraphics &&
+	                     device->get_device_features().vk12_features.hostQueryReset;
 
 	// Ignore timestampValidBits and friends for now.
 	if (supports_timestamp)
@@ -347,8 +356,7 @@ void QueryPool::begin()
 		for (unsigned j = 0; j < pool.index; j++)
 			pool.cookies[j]->signal_timestamp_ticks(pool.query_results[j]);
 
-		if (device->get_device_features().host_query_reset_features.hostQueryReset)
-			table.vkResetQueryPoolEXT(device->get_device(), pool.pool, 0, pool.index);
+		table.vkResetQueryPool(device->get_device(), pool.pool, 0, pool.index);
 	}
 
 	pool_index = 0;
@@ -369,19 +377,20 @@ void QueryPool::add_pool()
 	pool.query_results.resize(pool.size);
 	pool.cookies.resize(pool.size);
 
-	if (device->get_device_features().host_query_reset_features.hostQueryReset)
-		table.vkResetQueryPoolEXT(device->get_device(), pool.pool, 0, pool.size);
+	table.vkResetQueryPool(device->get_device(), pool.pool, 0, pool.size);
 
-	pools.push_back(move(pool));
+	pools.push_back(std::move(pool));
 }
 
-QueryPoolHandle QueryPool::write_timestamp(VkCommandBuffer cmd, VkPipelineStageFlagBits stage)
+QueryPoolHandle QueryPool::write_timestamp(VkCommandBuffer cmd, VkPipelineStageFlags2 stage)
 {
 	if (!supports_timestamp)
 	{
 		LOGI("Timestamps are not supported on this implementation.\n");
 		return {};
 	}
+
+	VK_ASSERT((stage & (stage - 1)) == 0);
 
 	if (pools[pool_index].index >= pools[pool_index].size)
 		pool_index++;
@@ -394,9 +403,13 @@ QueryPoolHandle QueryPool::write_timestamp(VkCommandBuffer cmd, VkPipelineStageF
 	auto cookie = QueryPoolHandle(device->handle_pool.query.allocate(device, true));
 	pool.cookies[pool.index] = cookie;
 
-	if (!device->get_device_features().host_query_reset_features.hostQueryReset)
-		table.vkCmdResetQueryPool(cmd, pool.pool, pool.index, 1);
-	table.vkCmdWriteTimestamp(cmd, stage, pool.pool, pool.index);
+	if (device->get_device_features().vk13_features.synchronization2)
+		table.vkCmdWriteTimestamp2(cmd, stage, pool.pool, pool.index);
+	else
+	{
+		table.vkCmdWriteTimestamp(cmd, static_cast<VkPipelineStageFlagBits>(convert_vk_src_stage2(stage)),
+		                          pool.pool, pool.index);
+	}
 
 	pool.index++;
 	return cookie;
@@ -450,7 +463,7 @@ double TimestampInterval::get_time_per_accumulation() const
 		return 0.0;
 }
 
-const string &TimestampInterval::get_tag() const
+const std::string &TimestampInterval::get_tag() const
 {
 	return tag;
 }
@@ -462,8 +475,8 @@ void TimestampInterval::reset()
 	total_frame_iterations = 0;
 }
 
-TimestampInterval::TimestampInterval(string tag_)
-	: tag(move(tag_))
+TimestampInterval::TimestampInterval(std::string tag_)
+	: tag(std::move(tag_))
 {
 }
 

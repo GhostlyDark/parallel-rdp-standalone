@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2022 Hans-Kristian Arntzen
+/* Copyright (c) 2017-2023 Hans-Kristian Arntzen
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -46,6 +46,10 @@ public:
 	uint32_t get_num_counters() const;
 	const VkPerformanceCounterKHR *get_available_counters() const;
 	const VkPerformanceCounterDescriptionKHR *get_available_counter_descs() const;
+
+	static void log_available_counters(const VkPerformanceCounterKHR *counters,
+	                                   const VkPerformanceCounterDescriptionKHR *descs,
+	                                   uint32_t count);
 
 private:
 	Device *device = nullptr;
@@ -114,7 +118,7 @@ public:
 
 	void begin();
 
-	QueryPoolHandle write_timestamp(VkCommandBuffer cmd, VkPipelineStageFlagBits stage);
+	QueryPoolHandle write_timestamp(VkCommandBuffer cmd, VkPipelineStageFlags2 stage);
 
 private:
 	Device *device;

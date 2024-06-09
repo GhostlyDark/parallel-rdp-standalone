@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2022 Hans-Kristian Arntzen
+/* Copyright (c) 2017-2023 Hans-Kristian Arntzen
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -20,6 +20,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#define NOMINMAX
 #include "shader.hpp"
 #include "device.hpp"
 #ifdef GRANITE_VULKAN_SPIRV_CROSS
@@ -27,28 +28,29 @@
 using namespace spirv_cross;
 #endif
 
-using namespace std;
 using namespace Util;
 
 namespace Vulkan
 {
 void ImmutableSamplerBank::hash(Util::Hasher &h, const ImmutableSamplerBank *sampler_bank)
 {
+	h.u32(0);
 	if (sampler_bank)
 	{
+		unsigned index = 0;
 		for (auto &set : sampler_bank->samplers)
 		{
 			for (auto *binding : set)
 			{
 				if (binding)
+				{
+					h.u32(index);
 					h.u64(binding->get_hash());
-				else
-					h.u32(0);
+				}
+				index++;
 			}
 		}
 	}
-	else
-		h.u32(0);
 }
 
 PipelineLayout::PipelineLayout(Hash hash, Device *device_, const CombinedResourceLayout &layout_,
@@ -326,11 +328,10 @@ bool ResourceLayout::unserialize(const uint8_t *data, size_t size)
 	return true;
 }
 
-Util::Hash Shader::hash(const uint32_t *data, size_t size, const ImmutableSamplerBank *sampler_bank)
+Util::Hash Shader::hash(const uint32_t *data, size_t size)
 {
 	Util::Hasher hasher;
 	hasher.data(data, size);
-	ImmutableSamplerBank::hash(hasher, sampler_bank);
 	return hasher.get();
 }
 
@@ -352,9 +353,15 @@ static void update_array_info(ResourceLayout &layout, const SPIRType &type, unsi
 					LOGE("Bindless textures can only be used with binding = 0 in a set.\n");
 
 				if (type.basetype != SPIRType::Image || type.image.dim == spv::DimBuffer)
+				{
 					LOGE("Can only use bindless for sampled images.\n");
+				}
 				else
+				{
 					layout.bindless_set_mask |= 1u << set;
+					// Ignore fp_mask for bindless since we can mix and match.
+					layout.sets[set].fp_mask = 0;
+				}
 
 				size = DescriptorSetLayout::UNSIZED_ARRAY;
 			}
@@ -513,7 +520,7 @@ bool Shader::reflect_resource_layout(ResourceLayout &layout, const uint32_t *dat
 	auto spec_constants = compiler.get_specialization_constants();
 	for (auto &c : spec_constants)
 	{
-		if (c.constant_id >= VULKAN_NUM_SPEC_CONSTANTS)
+		if (c.constant_id >= VULKAN_NUM_TOTAL_SPEC_CONSTANTS)
 		{
 			LOGE("Spec constant ID: %u is out of range, will be ignored.\n", c.constant_id);
 			continue;
@@ -532,7 +539,7 @@ bool Shader::reflect_resource_layout(ResourceLayout &, const uint32_t *, size_t)
 #endif
 
 Shader::Shader(Hash hash, Device *device_, const uint32_t *data, size_t size,
-               const ResourceLayout *resource_layout, const ImmutableSamplerBank *sampler_bank)
+               const ResourceLayout *resource_layout)
 	: IntrusiveHashMapEnabled<Shader>(hash)
 	, device(device_)
 {
@@ -558,18 +565,7 @@ Shader::Shader(Hash hash, Device *device_, const uint32_t *data, size_t size,
 		LOGE("Failed to reflect resource layout.\n");
 #endif
 
-	if (sampler_bank)
-		immutable_sampler_bank = *sampler_bank;
-
-	for (unsigned set = 0; set < VULKAN_NUM_DESCRIPTOR_SETS; set++)
-	{
-		for_each_bit(layout.sets[set].sampler_mask | layout.sets[set].sampled_image_mask, [&](unsigned binding) {
-			if (sampler_bank && sampler_bank->samplers[set][binding])
-				layout.sets[set].immutable_sampler_mask |= 1u << binding;
-		});
-	}
-
-	if (layout.bindless_set_mask != 0 && !device->get_device_features().supports_descriptor_indexing)
+	if (layout.bindless_set_mask != 0 && !device->get_device_features().vk12_features.descriptorIndexing)
 		LOGE("Sufficient features for descriptor indexing is not supported on this device.\n");
 }
 
@@ -585,19 +581,29 @@ void Program::set_shader(ShaderStage stage, Shader *handle)
 	shaders[Util::ecast(stage)] = handle;
 }
 
-Program::Program(Device *device_, Shader *vertex, Shader *fragment)
+Program::Program(Device *device_, Shader *vertex, Shader *fragment, const ImmutableSamplerBank *sampler_bank)
     : device(device_)
 {
 	set_shader(ShaderStage::Vertex, vertex);
 	set_shader(ShaderStage::Fragment, fragment);
-	device->bake_program(*this);
+	device->bake_program(*this, sampler_bank);
 }
 
-Program::Program(Device *device_, Shader *compute_shader)
+Program::Program(Device *device_, Shader *task, Shader *mesh, Shader *fragment, const ImmutableSamplerBank *sampler_bank)
+	: device(device_)
+{
+	if (task)
+		set_shader(ShaderStage::Task, task);
+	set_shader(ShaderStage::Mesh, mesh);
+	set_shader(ShaderStage::Fragment, fragment);
+	device->bake_program(*this, sampler_bank);
+}
+
+Program::Program(Device *device_, Shader *compute_shader, const ImmutableSamplerBank *sampler_bank)
     : device(device_)
 {
 	set_shader(ShaderStage::Compute, compute_shader);
-	device->bake_program(*this);
+	device->bake_program(*this, sampler_bank);
 }
 
 Pipeline Program::get_pipeline(Hash hash) const
@@ -613,29 +619,19 @@ Pipeline Program::add_pipeline(Hash hash, const Pipeline &pipeline)
 
 void Program::destroy_pipeline(const Pipeline &pipeline)
 {
-	if (internal_sync)
-		device->destroy_pipeline_nolock(pipeline.pipeline);
-	else
-		device->destroy_pipeline(pipeline.pipeline);
+	device->get_device_table().vkDestroyPipeline(device->get_device(), pipeline.pipeline, nullptr);
 }
 
 void Program::promote_read_write_to_read_only()
 {
-#ifdef GRANITE_VULKAN_MT
 	pipelines.move_to_read_only();
-#endif
 }
 
 Program::~Program()
 {
-#ifdef GRANITE_VULKAN_MT
 	for (auto &pipe : pipelines.get_read_only())
 		destroy_pipeline(pipe.get());
 	for (auto &pipe : pipelines.get_read_write())
 		destroy_pipeline(pipe.get());
-#else
-	for (auto &pipe : pipelines)
-		destroy_pipeline(pipe.get());
-#endif
 }
 }

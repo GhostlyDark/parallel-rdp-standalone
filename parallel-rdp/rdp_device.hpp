@@ -33,10 +33,6 @@
 #include "worker_thread.hpp"
 #include "rdp_dump_write.hpp"
 
-#ifndef GRANITE_VULKAN_MT
-#error "Granite Vulkan backend must be built with multithreading support."
-#endif
-
 namespace RDP
 {
 struct RGBA
@@ -124,6 +120,8 @@ public:
 
 	~CommandProcessor();
 
+	void set_validation_interface(ValidationInterface *iface);
+
 	bool device_is_supported() const;
 
 	// Synchronization.
@@ -210,10 +208,10 @@ private:
 	std::unique_ptr<ShaderBank> shader_bank;
 #endif
 
-	CommandRing ring;
-
-	VideoInterface vi;
+	// Tear-down order is important here.
 	Renderer renderer;
+	VideoInterface vi;
+	CommandRing ring;
 
 	void clear_hidden_rdram();
 	void clear_tmem();
