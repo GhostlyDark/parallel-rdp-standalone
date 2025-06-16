@@ -9,6 +9,10 @@ add_definitions(-DM64P_PLUGIN_API -DGRANITE_VULKAN_MT)
 
 option(CONFIG_GUI "Enables Qt configuration GUI)" OFF)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 # check for INTERPROCEDURAL_OPTIMIZATION support
 if((${CMAKE_VERSION} VERSION_EQUAL 3.9) OR (${CMAKE_VERSION} VERSION_GREATER 3.9))
     cmake_policy(SET CMP0069 NEW)
