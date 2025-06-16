@@ -282,7 +282,7 @@ void screen_init()
 
     CoreVideo_SetVideoMode(window_width, window_height, 0, window_fullscreen ? M64VIDEO_FULLSCREEN : M64VIDEO_WINDOWED, M64VIDEOFLAG_SUPPORT_RESIZING);
 
-    CoreVideo_SetCaption("Mupen64Plus-Parallel");
+    CoreVideo_SetCaption("Parallel RDP");
 
     glCreateShader = (PFNGLCREATESHADERPROC) CoreVideo_GL_GetProcAddress("glCreateShader");
     glShaderSource = (PFNGLSHADERSOURCEPROC) CoreVideo_GL_GetProcAddress("glShaderSource");
