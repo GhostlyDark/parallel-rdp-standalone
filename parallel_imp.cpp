@@ -440,9 +440,7 @@ void vk_process_commands()
 
 			// For synchronous RDP:
 			if (vk_synchronous)
-			{
-				processor->wait_for_timeline(processor->signal_timeline());
-			}
+				processor->signal_timeline();
 
 			*gfx.MI_INTR_REG |= DP_INTERRUPT;
 			*GET_GFX_INFO(DPC_STATUS_REG) &= ~(DP_STATUS_PIPE_BUSY | DP_STATUS_START_GCLK);
