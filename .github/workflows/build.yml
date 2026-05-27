@@ -1,0 +1,106 @@
+name: Build parallel-rdp plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Release
+          - Debug
+
+jobs:
+  build-linux:
+    name: Linux (.so)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            ninja-build \
+            libvulkan-dev \
+            vulkan-validationlayers-dev \
+            qt6-base-dev \
+            libgl1-mesa-dev \
+            pkg-config
+
+      - name: Configure (CMake)
+        run: |
+          cmake -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type }}
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist
+          find build -name "*.so" -exec cp {} dist/ \;
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallel-rdp-linux-${{ github.event.inputs.build_type }}-${{ github.sha }}
+          path: dist/*.so
+          if-no-files-found: warn
+          retention-days: 30
+
+  build-windows:
+    name: Windows (.dll)
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          vulkan_version: 1.3.268.0
+          install_runtime: true
+          cache: true
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.5.*'
+          arch: 'win64_msvc2019_64'
+          cache: true
+
+      - name: Configure (CMake)
+        run: |
+          cmake -B build `
+            -G "Visual Studio 17 2022" -A x64 `
+            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type }}
+
+      - name: Build
+        run: cmake --build build --config ${{ github.event.inputs.build_type }} --parallel
+
+      - name: Collect artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist
+          Get-ChildItem -Recurse build -Filter "*.dll" | Copy-Item -Destination dist/
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallel-rdp-windows-${{ github.event.inputs.build_type }}-${{ github.sha }}
+          path: dist/*.dll
+          if-no-files-found: warn
+          retention-days: 30
