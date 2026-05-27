@@ -21,7 +21,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          path: parallel-rdp-standalone
           submodules: recursive
+
+      - name: Fetch Mupen64Plus API headers
+        run: |
+          git clone --depth=1 \
+            https://github.com/mupen64plus/mupen64plus-core.git \
+            mupen64plus-core
+
+      # Directory layout on disk:
+      #   $GITHUB_WORKSPACE/
+      #     mupen64plus-core/src/api/   ← m64p_*.h
+      #     parallel-rdp-standalone/    ← CMakeLists.txt uses ../mupen64plus-core/src/api
 
       - name: Install system dependencies
         run: |
@@ -36,15 +48,19 @@ jobs:
             pkg-config
 
       - name: Configure (CMake)
+        working-directory: parallel-rdp-standalone
         run: |
           cmake -B build \
             -G Ninja \
-            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type }}
+            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type }} \
+            -DCONFIG_GUI=ON
 
       - name: Build
+        working-directory: parallel-rdp-standalone
         run: cmake --build build --parallel
 
       - name: Collect artifacts
+        working-directory: parallel-rdp-standalone
         run: |
           mkdir -p dist
           find build -name "*.so" -exec cp {} dist/ \;
@@ -53,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: parallel-rdp-linux-${{ github.event.inputs.build_type }}-${{ github.sha }}
-          path: dist/*.so
+          path: parallel-rdp-standalone/dist/*.so
           if-no-files-found: warn
           retention-days: 30
 
@@ -65,7 +81,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          path: parallel-rdp-standalone
           submodules: recursive
+
+      - name: Fetch Mupen64Plus API headers
+        run: |
+          git clone --depth=1 `
+            https://github.com/mupen64plus/mupen64plus-core.git `
+            mupen64plus-core
+
+      # Directory layout on disk:
+      #   $GITHUB_WORKSPACE/
+      #     mupen64plus-core/src/api/   ← m64p_*.h
+      #     parallel-rdp-standalone/    ← CMakeLists.txt uses ../mupen64plus-core/src/api
 
       - name: Install Vulkan SDK
         uses: humbletim/install-vulkan-sdk@v1.2
@@ -82,16 +110,20 @@ jobs:
           cache: true
 
       - name: Configure (CMake)
+        working-directory: parallel-rdp-standalone
         run: |
           cmake -B build `
             -G "Visual Studio 17 2022" -A x64 `
-            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type }}
+            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type }} `
+            -DCONFIG_GUI=ON
 
       - name: Build
+        working-directory: parallel-rdp-standalone
         run: cmake --build build --config ${{ github.event.inputs.build_type }} --parallel
 
       - name: Collect artifacts
         shell: pwsh
+        working-directory: parallel-rdp-standalone
         run: |
           New-Item -ItemType Directory -Force -Path dist
           Get-ChildItem -Recurse build -Filter "*.dll" | Copy-Item -Destination dist/
@@ -100,6 +132,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: parallel-rdp-windows-${{ github.event.inputs.build_type }}-${{ github.sha }}
-          path: dist/*.dll
+          path: parallel-rdp-standalone/dist/*.dll
           if-no-files-found: warn
           retention-days: 30
