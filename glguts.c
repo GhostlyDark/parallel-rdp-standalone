@@ -216,20 +216,43 @@ void gl_screen_render()
     int win_height = window_height;
     int win_x = 0;
     int win_y = 0;
-    int32_t hw = display_height * win_width;
-    int32_t wh = display_width * win_height;
 
-    // add letterboxes or pillarboxes if the window has a different aspect ratio
-    // than the current display mode
-    if (hw > wh) {
-        int32_t w_max = wh / display_height;
-        win_x += (win_width - w_max) / 2;
-        win_width = w_max;
-    } else if (hw < wh) {
-        int32_t h_max = hw / display_width;
-        win_y += (win_height - h_max) / 2;
-        win_height = h_max;
+    if (vk_integer_scaling)
+    {
+        // Integer (pixel-perfect) scaling:
+        // Find the largest integer multiplier that fits inside the window.
+        int scale_x = win_width  / display_width;
+        int scale_y = win_height / display_height;
+        int scale   = scale_x < scale_y ? scale_x : scale_y;
+        if (scale < 1) scale = 1;  // never go below 1x
+
+        int scaled_width  = display_width  * scale;
+        int scaled_height = display_height * scale;
+
+        // Centre the scaled image inside the window
+        win_x = (win_width  - scaled_width)  / 2;
+        win_y = (win_height - scaled_height) / 2;
+        win_width  = scaled_width;
+        win_height = scaled_height;
     }
+    else
+    {
+        int32_t hw = display_height * win_width;
+        int32_t wh = display_width  * win_height;
+
+        // add letterboxes or pillarboxes if the window has a different aspect ratio
+        // than the current display mode
+        if (hw > wh) {
+            int32_t w_max = wh / display_height;
+            win_x += (win_width - w_max) / 2;
+            win_width = w_max;
+        } else if (hw < wh) {
+            int32_t h_max = hw / display_width;
+            win_y += (win_height - h_max) / 2;
+            win_height = h_max;
+        }
+    }
+
     // configure viewport
     glViewport(win_x, win_y, win_width, win_height);
 
