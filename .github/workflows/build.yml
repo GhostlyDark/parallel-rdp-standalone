@@ -109,13 +109,23 @@ jobs:
           arch: 'win64_msvc2019_64'
           cache: true
 
+      - name: Download glext.h from Khronos
+        shell: pwsh
+        working-directory: parallel-rdp-standalone
+        run: |
+          New-Item -ItemType Directory -Force -Path GL
+          Invoke-WebRequest `
+            -Uri "https://registry.khronos.org/OpenGL/api/GL/glext.h" `
+            -OutFile "GL\glext.h"
+
       - name: Configure (CMake)
         working-directory: parallel-rdp-standalone
         run: |
           cmake -B build `
             -G "Visual Studio 17 2022" -A x64 `
             -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type }} `
-            -DCONFIG_GUI=ON
+            -DCONFIG_GUI=ON `
+            -DEXTRA_INCLUDE_DIR="${{ github.workspace }}/parallel-rdp-standalone"
 
       - name: Build
         working-directory: parallel-rdp-standalone
