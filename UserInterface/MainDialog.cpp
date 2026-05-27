@@ -146,6 +146,7 @@ void MainDialog::on_buttonBox_clicked(QAbstractButton* button)
     int nativeTextureLodValue = this->nativeTextureLodCheckBox->isChecked() ? 1 : 0; //(ConfigGetParamBool(configVideoParallel, KEY_NATIVETEXTLOD));
     int fullscreenValue = this->fullscreenCheckBox->isChecked() ? 1 : 0; //(ConfigGetParamBool(configVideoParallel, KEY_FULLSCREEN));
     int forceWidescreenValue = this->forceWidescreenCheckBox->isChecked() ? 1 : 0; //(ConfigGetParamBool(configVideoParallel, KEY_WIDESCREEN));
+    int integerScalingValue = this->integerScalingCheckBox->isChecked() ? 1 : 0;
     int supersampledRdramReadsValue = this->supersampledRdramReadsCheckBox->isChecked() ? 1 : 0; //(ConfigGetParamBool(configVideoParallel, KEY_SSREADBACKS));
     int viBilinearFilteringValue = this->viBilinearFilteringCheckBox->isChecked() ? 1 : 0; //(ConfigGetParamBool(configVideoParallel, KEY_VIBILERP));
     int viGammaDitherValue = this->viGammaDitherCheckBox->isChecked() ? 1 : 0; //(ConfigGetParamBool(configVideoParallel, KEY_GAMMADITHER));
