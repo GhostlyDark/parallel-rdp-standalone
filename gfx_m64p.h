@@ -52,3 +52,5 @@ extern ptr_ConfigSetParameter ConfigSetParameter;
 #define KEY_DEINTERLACE "DeinterlaceMode"
 #define KEY_SYNCHRONOUS "SynchronousRDP"
 #define KEY_VSYNC "VSync"
+#define KEY_INTEGER_SCALING "IntegerScaling"
+
