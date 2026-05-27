@@ -113,6 +113,12 @@ void vk_rasterize()
 		buf.pitch  = scanout.width;
 		buf.pixels = (video_pixel*)device->map_host_buffer(*scanout.buffer, Vulkan::MEMORY_ACCESS_READ_BIT);
 
+	if (!buf.pixels)
+{
+    screen_swap(true);
+    return;
+}
+
 		// write fb to screen
 		screen_write(&buf);
 
