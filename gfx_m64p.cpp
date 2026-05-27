@@ -195,6 +195,7 @@ EXPORT m64p_error CALL PluginStartup(m64p_dynlib_handle _CoreLibHandle, void *Co
     ConfigSetDefaultInt(configVideoParallel, KEY_DOWNSCALE, 0, "Downsampling factor, downscales output after VI, equivalent to SSAA. 0=disabled, 1=1/2, 2=1/4, 3=1/8");
     ConfigSetDefaultBool(configVideoParallel, KEY_NATIVETEXTLOD, 0, "Use native texture LOD computation when upscaling, effectively a LOD bias");
     ConfigSetDefaultBool(configVideoParallel, KEY_NATIVETEXTRECT, 1, "Native resolution TEX_RECT. TEX_RECT primitives should generally be rendered at native resolution to avoid seams");
+    ConfigSetDefaultBool(configVideoParallel, KEY_INTEGER_SCALING, 0, "Integer (pixel-perfect) scaling. Scales the image by the largest integer factor that fits the window.");
     ConfigSaveSection("Video-Parallel");
 
     // set logging interface
