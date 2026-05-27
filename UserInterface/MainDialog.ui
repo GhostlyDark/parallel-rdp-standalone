@@ -276,6 +276,16 @@
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QCheckBox" name="integerScalingCheckBox">
+               <property name="text">
+                <string>Integer scaling (pixel-perfect)</string>
+               </property>
+               <property name="toolTip">
+                <string>Scales the image by the largest integer factor that fits the window. Eliminates sub-pixel blurring (Perfect Pixel / 1:1).</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
            <item>
