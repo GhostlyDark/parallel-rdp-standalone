@@ -25,6 +25,7 @@ extern "C"
     extern bool vk_vi_aa, vk_vi_scale, vk_dither_filter;
     extern bool vk_interlacing;
     extern bool vk_synchronous;
+    extern bool vk_integer_scaling;
     extern bool skip_swap_clear;
 
     void vk_rasterize();
