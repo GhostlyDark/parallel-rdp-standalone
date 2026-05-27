@@ -320,6 +320,7 @@ EXPORT int CALL RomOpen(void)
     vk_vertical_stretch = ConfigGetParamInt(configVideoParallel, KEY_VERTICAL_STRETCH);
 
     vk_synchronous = ConfigGetParamBool(configVideoParallel, KEY_SYNCHRONOUS);
+    vk_integer_scaling = ConfigGetParamBool(configVideoParallel, KEY_INTEGER_SCALING);
 
     char romname[21];
     for (int i = 0; i < 20; ++i)
