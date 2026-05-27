@@ -107,27 +107,34 @@ void vk_rasterize()
         scanout.fence->wait();
 
     struct frame_buffer buf = {0};
-		buf.valid  = true;
-		buf.height = scanout.height;
-		buf.width  = scanout.width;
-		buf.pitch  = scanout.width;
-		buf.pixels = (video_pixel*)device->map_host_buffer(*scanout.buffer, Vulkan::MEMORY_ACCESS_READ_BIT);
+    buf.valid  = true;
+    buf.height = scanout.height;
+    buf.width  = scanout.width;
+    buf.pitch  = scanout.width;
 
-	if (!buf.pixels)
-{
-    screen_swap(true);
-    return;
+    buf.pixels = (video_pixel*)device->map_host_buffer(
+        *scanout.buffer,
+        Vulkan::MEMORY_ACCESS_READ_BIT
+    );
+
+    if (!buf.pixels)
+    {
+        screen_swap(true);
+        return;
+    }
+
+    // write fb to screen
+    screen_write(&buf);
+
+    // unmap buffer
+    device->unmap_host_buffer(
+        *scanout.buffer,
+        Vulkan::MEMORY_ACCESS_READ_BIT
+    );
+
+    // update screen
+    screen_swap(false);
 }
-
-		// write fb to screen
-		screen_write(&buf);
-
-		// unmap buffer
-		device->unmap_host_buffer(*scanout.buffer, Vulkan::MEMORY_ACCESS_READ_BIT);
-
-		// update screen
-		screen_swap(false);
-	}
 }
 
 void vk_process_commands()
