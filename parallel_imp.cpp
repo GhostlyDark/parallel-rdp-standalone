@@ -102,9 +102,11 @@ void vk_rasterize()
 		}
 	}
 	else
-	{
-		scanout.fence->wait();
-		struct frame_buffer buf = {0};
+{
+    if (scanout.fence)
+        scanout.fence->wait();
+
+    struct frame_buffer buf = {0};
 		buf.valid  = true;
 		buf.height = scanout.height;
 		buf.width  = scanout.width;
