@@ -39,6 +39,7 @@ extern "C"
     extern int32_t window_fullscreen;
     extern int32_t window_widescreen;
     extern int32_t window_vsync;
+    extern bool vk_integer_scaling;
 
 #ifdef __cplusplus
 }
