@@ -161,6 +161,7 @@ void MainDialog::on_buttonBox_clicked(QAbstractButton* button)
     ConfigSetParameter(configVideoParallel, KEY_NATIVETEXTLOD, M64TYPE_BOOL, &nativeTextureLodValue);
     ConfigSetParameter(configVideoParallel, KEY_FULLSCREEN, M64TYPE_BOOL, &fullscreenValue);
     ConfigSetParameter(configVideoParallel, KEY_WIDESCREEN, M64TYPE_BOOL, &forceWidescreenValue);
+    ConfigSetParameter(configVideoParallel, KEY_INTEGER_SCALING, M64TYPE_BOOL, &integerScalingValue);
     ConfigSetParameter(configVideoParallel, KEY_SSREADBACKS, M64TYPE_BOOL, &supersampledRdramReadsValue);
     ConfigSetParameter(configVideoParallel, KEY_VIBILERP, M64TYPE_BOOL, &viBilinearFilteringValue);
     ConfigSetParameter(configVideoParallel, KEY_GAMMADITHER, M64TYPE_BOOL, &viGammaDitherValue);
