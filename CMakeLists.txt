@@ -31,6 +31,7 @@ endif()
 if(WIN32)
     find_package(OpenGL REQUIRED)
     add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
+    # GL/glext.h is committed to the repo root under GL/glext.h
     include_directories(${CMAKE_SOURCE_DIR})
 endif()
 
