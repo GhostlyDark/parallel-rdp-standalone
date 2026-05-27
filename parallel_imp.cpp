@@ -238,9 +238,15 @@ bool vk_init()
 	frontend.reset();
 
 	if (!::Vulkan::Context::init_loader(nullptr))
-		return false;
-	if (!context->init_instance_and_device(nullptr, 0, nullptr, 0, 0))
-		return false;
+{
+    return false;
+}
+
+if (!context->init_instance_and_device(nullptr, 0, nullptr, 0, 0))
+{
+    vk_destroy();
+    return false;
+}
 
 	uintptr_t aligned_rdram = reinterpret_cast<uintptr_t>(gfx.RDRAM);
 	uintptr_t offset = 0;
