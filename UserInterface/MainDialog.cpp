@@ -71,6 +71,7 @@ MainDialog::MainDialog(QWidget* parent) : QDialog(parent)
     this->nativeTextureLodCheckBox->setChecked(ConfigGetParamBool(configVideoParallel, KEY_NATIVETEXTLOD));
     this->fullscreenCheckBox->setChecked(ConfigGetParamBool(configVideoParallel, KEY_FULLSCREEN));
     this->forceWidescreenCheckBox->setChecked(ConfigGetParamBool(configVideoParallel, KEY_WIDESCREEN));
+    this->integerScalingCheckBox->setChecked(ConfigGetParamBool(configVideoParallel, KEY_INTEGER_SCALING));
 
     this->supersampledRdramReadsCheckBox->setChecked(ConfigGetParamBool(configVideoParallel, KEY_SSREADBACKS));
     this->viBilinearFilteringCheckBox->setChecked(ConfigGetParamBool(configVideoParallel, KEY_VIBILERP));
