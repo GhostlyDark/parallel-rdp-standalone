@@ -11,6 +11,10 @@
 #define DLSYM(a, b) dlsym(a, b)
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern uint32_t rdram_size;
 extern GFX_INFO gfx;
 extern m64p_dynlib_handle CoreLibHandle;
@@ -26,6 +30,10 @@ extern ptr_ConfigSetDefaultBool ConfigSetDefaultBool;
 extern ptr_ConfigGetParamInt ConfigGetParamInt;
 extern ptr_ConfigGetParamBool ConfigGetParamBool;
 extern ptr_ConfigSetParameter ConfigSetParameter;
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #define KEY_FULLSCREEN "Fullscreen"
@@ -53,4 +61,3 @@ extern ptr_ConfigSetParameter ConfigSetParameter;
 #define KEY_SYNCHRONOUS "SynchronousRDP"
 #define KEY_VSYNC "VSync"
 #define KEY_INTEGER_SCALING "IntegerScaling"
-
