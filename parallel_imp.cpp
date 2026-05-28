@@ -65,10 +65,6 @@ void vk_rasterize()
 	frontend->set_vi_register(RDP::VIRegister::XScale, *GET_GFX_INFO(VI_X_SCALE_REG));
 	frontend->set_vi_register(RDP::VIRegister::YScale, *GET_GFX_INFO(VI_Y_SCALE_REG));
 
-	RDP::Quirks quirks;
-	quirks.set_native_texture_lod(vk_native_texture_lod);
-	quirks.set_native_resolution_tex_rect(vk_native_tex_rect);
-	frontend->set_quirks(quirks);
 	frontend->begin_frame_context();
 
 	RDP::ScanoutOptions opts = {};
