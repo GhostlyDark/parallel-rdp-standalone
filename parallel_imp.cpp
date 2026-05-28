@@ -310,11 +310,15 @@ bool vk_init()
 		return false;
 	}
 
+	DebugMessage(M64MSG_INFO, "parallel-rdp: Using RDRAM size of %u bytes.", rdram_size);
+
 	frontend.reset(new RDP::CommandProcessor(*device, reinterpret_cast<void *>(aligned_rdram),
 								 offset, rdram_size, rdram_size / 2, flags));
 	if (!frontend->device_is_supported())
 	{
+		DebugMessage(M64MSG_ERROR, "parallel-rdp: Device does not support 8/16-bit storage. Update your GPU drivers.");
 		frontend.reset();
+		vk_destroy();
 		return false;
 	}
 
