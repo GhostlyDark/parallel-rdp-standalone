@@ -99,13 +99,12 @@ void vk_rasterize()
 	}
 	else
 {
-    if (scanout.fence)
-        scanout.fence->wait();
-	if (!scanout.buffer)
-{
-    screen_swap(true);
-    return;
-}
+    if (!scanout.fence || !scanout.buffer)
+	{
+		screen_swap(true);
+		return;
+	}
+	scanout.fence->wait();
 
     struct frame_buffer buf = {0};
     buf.valid  = true;
