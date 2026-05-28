@@ -50,6 +50,7 @@ void vk_rasterize()
 		return;
 	}
 
+	DebugMessage(M64MSG_INFO, "VI_STATUS = 0x%08X", *GET_GFX_INFO(VI_STATUS_REG));
 	frontend->set_vi_register(RDP::VIRegister::Control, *GET_GFX_INFO(VI_STATUS_REG));
 	frontend->set_vi_register(RDP::VIRegister::Origin, *GET_GFX_INFO(VI_ORIGIN_REG));
 	frontend->set_vi_register(RDP::VIRegister::Width, *GET_GFX_INFO(VI_WIDTH_REG));
