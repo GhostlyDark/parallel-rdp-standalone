@@ -74,9 +74,8 @@ void vk_rasterize()
 	opts.vi.dither_filter = vk_dither_filter;
 	opts.vi.divot_filter = vk_divot_filter;
 	opts.vi.gamma_dither = vk_gamma_dither;
-	bool is_interlaced = (*GET_GFX_INFO(VI_STATUS_REG) & 0x40) != 0;
-    opts.blend_previous_frame = false;
-    opts.upscale_deinterlacing = is_interlaced;
+	opts.blend_previous_frame = false;
+    opts.upscale_deinterlacing = false;
 	opts.downscale_steps = vk_downscaling_steps;
 	opts.crop_rect.left = vk_overscan_left;
 	opts.crop_rect.right = vk_overscan_right;
