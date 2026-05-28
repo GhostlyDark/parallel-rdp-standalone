@@ -243,15 +243,17 @@ bool vk_init()
 	frontend.reset();
 
 	if (!::Vulkan::Context::init_loader(nullptr))
-{
-    return false;
-}
+	{
+		DebugMessage(M64MSG_ERROR, "parallel-rdp: Failed to load Vulkan loader. Is Vulkan installed?");
+		return false;
+	}
 
-if (!context->init_instance_and_device(nullptr, 0, nullptr, 0, 0))
-{
-    vk_destroy();
-    return false;
-}
+	if (!context->init_instance_and_device(nullptr, 0, nullptr, 0, 0))
+	{
+		DebugMessage(M64MSG_ERROR, "parallel-rdp: Failed to initialize Vulkan instance/device. Check your GPU drivers.");
+		vk_destroy();
+		return false;
+	}
 
 	uintptr_t aligned_rdram = reinterpret_cast<uintptr_t>(gfx.RDRAM);
 	uintptr_t offset = 0;
