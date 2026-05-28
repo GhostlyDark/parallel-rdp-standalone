@@ -261,9 +261,15 @@ bool vk_init()
 
 		if (offset)
 		{
+			DebugMessage(M64MSG_ERROR, "parallel-rdp: RDRAM is not aligned properly. Align RDRAM to 64 KiB.");
+			vk_destroy();
 			return false;
 		}
 		aligned_rdram -= offset;
+	}
+	else
+	{
+		DebugMessage(M64MSG_WARNING, "parallel-rdp: VK_EXT_external_memory_host not supported by your GPU/driver. Performance may be reduced.");
 	}
 
 	device->set_context(*context);
