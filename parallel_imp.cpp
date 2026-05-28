@@ -279,18 +279,23 @@ bool vk_init()
 	switch (vk_rescaling)
 	{
 	case 1:
+		DebugMessage(M64MSG_INFO, "parallel-rdp: Upscaling disabled (native resolution).");
 		break;
 	case 2:
 		flags |= RDP::COMMAND_PROCESSOR_FLAG_UPSCALING_2X_BIT;
+		DebugMessage(M64MSG_INFO, "parallel-rdp: Using 2x upscaling.");
 		break;
 	case 4:
 		flags |= RDP::COMMAND_PROCESSOR_FLAG_UPSCALING_4X_BIT;
+		DebugMessage(M64MSG_INFO, "parallel-rdp: Using 4x upscaling.");
 		break;
 	case 8:
 		flags |= RDP::COMMAND_PROCESSOR_FLAG_UPSCALING_8X_BIT;
+		DebugMessage(M64MSG_INFO, "parallel-rdp: Using 8x upscaling.");
 		break;
 
 	default:
+		DebugMessage(M64MSG_WARNING, "parallel-rdp: Unknown upscaling value %d, ignoring.", vk_rescaling);
 		break;
 	}
 	if (vk_rescaling > 1 && vk_ssreadbacks)
