@@ -253,7 +253,6 @@ bool vk_init()
 	uintptr_t aligned_rdram = reinterpret_cast<uintptr_t>(gfx.RDRAM);
 	uintptr_t offset = 0;
 
-
 	if (device->get_device_features().supports_external_memory_host)
 	{
 		size_t align = device->get_device_features().host_memory_properties.minImportedHostPointerAlignment;
