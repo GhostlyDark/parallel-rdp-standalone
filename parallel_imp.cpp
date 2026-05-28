@@ -292,8 +292,15 @@ bool vk_init()
 	if (vk_ssdither)
 		flags |= RDP::COMMAND_PROCESSOR_FLAG_SUPER_SAMPLED_DITHER_BIT;
 
+	if (rdram_size == 0)
+	{
+		DebugMessage(M64MSG_ERROR, "parallel-rdp: RDRAM size is 0, plugin initialized too early.");
+		vk_destroy();
+		return false;
+	}
+
 	frontend.reset(new RDP::CommandProcessor(*device, reinterpret_cast<void *>(aligned_rdram),
-											 offset, rdram_size, rdram_size / 2, flags));
+								 offset, rdram_size, rdram_size / 2, flags));
 	if (!frontend->device_is_supported())
 	{
 		frontend.reset();
