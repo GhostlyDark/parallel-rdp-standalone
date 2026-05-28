@@ -272,6 +272,13 @@ bool vk_init()
 		DebugMessage(M64MSG_WARNING, "parallel-rdp: VK_EXT_external_memory_host not supported by your GPU/driver. Performance may be reduced.");
 	}
 
+	if (rdram_size == 0)
+	{
+		DebugMessage(M64MSG_ERROR, "parallel-rdp: RDRAM size is 0, plugin initialized too early.");
+		vk_destroy();
+		return false;
+	}
+
 	device->set_context(*context);
 	device->init_frame_contexts(3);
 	::RDP::CommandProcessorFlags flags = 0;
@@ -302,13 +309,6 @@ bool vk_init()
 		flags |= RDP::COMMAND_PROCESSOR_FLAG_SUPER_SAMPLED_READ_BACK_BIT;
 	if (vk_ssdither)
 		flags |= RDP::COMMAND_PROCESSOR_FLAG_SUPER_SAMPLED_DITHER_BIT;
-
-	if (rdram_size == 0)
-	{
-		DebugMessage(M64MSG_ERROR, "parallel-rdp: RDRAM size is 0, plugin initialized too early.");
-		vk_destroy();
-		return false;
-	}
 
 	DebugMessage(M64MSG_INFO, "parallel-rdp: Using RDRAM size of %u bytes.", rdram_size);
 
