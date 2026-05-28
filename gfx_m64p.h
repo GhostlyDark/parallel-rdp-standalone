@@ -30,6 +30,7 @@ extern ptr_ConfigSetDefaultBool ConfigSetDefaultBool;
 extern ptr_ConfigGetParamInt ConfigGetParamInt;
 extern ptr_ConfigGetParamBool ConfigGetParamBool;
 extern ptr_ConfigSetParameter ConfigSetParameter;
+void DebugMessage(int level, const char *message, ...);
 
 #ifdef __cplusplus
 }
