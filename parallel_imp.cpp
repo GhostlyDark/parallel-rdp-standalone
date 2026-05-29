@@ -104,6 +104,12 @@ void vk_rasterize()
 			screen_swap(true);
 			return;
 		}
+		if (scanout.buffer->get_create_info().size == 0)
+		{
+			DebugMessage(M64MSG_WARNING, "parallel-rdp: scanout buffer has zero size, skipping frame.");
+			screen_swap(true);
+			return;
+		}
 		scanout.fence->wait();
 
 		struct frame_buffer buf = {0};
