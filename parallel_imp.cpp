@@ -231,6 +231,11 @@ void vk_destroy()
 
 bool vk_init()
 {
+	if (running)
+	{
+		DebugMessage(M64MSG_WARNING, "parallel-rdp: vk_init called while already running, ignoring.");
+		return true;
+	}
 	running = false;
 	screen_init();
 	context.reset(new Context);
