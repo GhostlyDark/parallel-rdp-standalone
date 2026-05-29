@@ -199,6 +199,15 @@ void vk_process_commands()
 		uint32_t command = (w1 >> 24) & 63;
 		int cmd_length = cmd_len_lut[command];
 
+		if (cmd_length <= 0)
+		{
+			DebugMessage(M64MSG_ERROR, "parallel-rdp: command %u has zero length, aborting command processing.", command);
+			cmd_ptr = 0;
+			cmd_cur = 0;
+			*GET_GFX_INFO(DPC_START_REG) = *GET_GFX_INFO(DPC_CURRENT_REG) = *GET_GFX_INFO(DPC_END_REG);
+			return;
+		}
+
 		if (cmd_ptr - cmd_cur - cmd_length < 0)
 		{
 			*GET_GFX_INFO(DPC_START_REG) = *GET_GFX_INFO(DPC_CURRENT_REG) = *GET_GFX_INFO(DPC_END_REG);
