@@ -125,6 +125,7 @@ void vk_rasterize()
 
 		if (!buf.pixels)
 		{
+			DebugMessage(M64MSG_ERROR, "parallel-rdp: map_host_buffer returned null, cannot render frame.");
 			screen_swap(true);
 			return;
 		}
