@@ -333,6 +333,8 @@ EXPORT int CALL RomOpen(void)
 
     plugin_init();
 
+    DebugMessage(M64MSG_INFO, "parallel-rdp: Starting (fork by SatanNintendo, based on Mupen64Plus parallel-rdp-standalone).");
+
     if (vk_init())
     {
         vk_initialized = true;
