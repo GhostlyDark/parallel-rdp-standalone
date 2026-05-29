@@ -221,12 +221,18 @@ void vk_process_commands()
 
 void vk_destroy()
 {
+	if (!running && !frontend && !device)
+	{
+		return;
+	}
+	DebugMessage(M64MSG_INFO, "parallel-rdp: Shutting down renderer.");
 	running = false;
 	frontend.reset();
 	device.reset();
 	context.reset();
 
 	screen_close();
+	DebugMessage(M64MSG_INFO, "parallel-rdp: Renderer shut down successfully.");
 }
 
 bool vk_init()
